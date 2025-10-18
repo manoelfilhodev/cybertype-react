@@ -6,14 +6,17 @@ import { useEffect, useRef, useState } from "react";
 import { getRandomWord } from "../core/words";
 import { saveScore, getBestScore } from "../core/storage";
 import SoundToggle from "./SoundToggle";
+import VirtualKeyboard from "./VirtualKeyboard";
+import { audioManager } from "../core/audioManager";
 
 // 🎧 Sons globais (Cyberpunk Edition)
 const correctSound = new Audio("/assets/sounds/correct.mp3");
 const wrongSound = new Audio("/assets/sounds/wrong.mp3");
 const timeoutSound = new Audio("/assets/sounds/timeout.mp3");
-const bgMusic = new Audio("/assets/sounds/bg-music.mp3");
 
-bgMusic.loop = true; // música contínua
+const bgMusic = audioManager.bgMusic;
+
+bgMusic.loop = true;
 bgMusic.volume = 0.35;
 correctSound.volume = 0.6;
 wrongSound.volume = 0.6;
@@ -43,10 +46,13 @@ export default function GameArea({ difficulty, onExit }: GameAreaProps) {
     startNewWord();
     inputRef.current?.focus();
 
-    // 🎶 Toca música ao iniciar
+    // 🎶 Inicia música de fundo
     bgMusic.play().catch(() => {
       console.log("🎵 Aguardando interação do usuário para iniciar o som...");
     });
+
+    // 🔊 Pré-desbloqueia o som do teclado (fix Chrome)
+    //new Audio("/assets/sounds/key-click.mp3").play().catch(() => {});
 
     return () => {
       stopTimer();
@@ -95,8 +101,12 @@ export default function GameArea({ difficulty, onExit }: GameAreaProps) {
     timeoutSound.currentTime = 0;
     timeoutSound.play();
     setStatus("⏰ Tempo esgotado!");
-    setTimeout(() => setStatus(""), 800);
-    startNewWord();
+
+    // ⛔ Encerra o jogo ao acabar o tempo
+    setTimeout(() => {
+      setStatus("");
+      endGame();
+    }, 800);
   }
 
   // === Entrada ===
@@ -106,6 +116,7 @@ export default function GameArea({ difficulty, onExit }: GameAreaProps) {
     else {
       const expected = currentWord.substring(0, value.length);
       if (value !== expected) handleWrong();
+      else setStatus("");
     }
   }
 
@@ -160,14 +171,20 @@ export default function GameArea({ difficulty, onExit }: GameAreaProps) {
   // === Tela de resultado ===
   if (gameOver) {
     return (
-      <div className="flex flex-col items-center justify-center gap-6 text-center relative">
-        <SoundToggle bgMusic={bgMusic} />
-        <h1 className="text-3xl font-bold text-cyan-400 drop-shadow-md">🏁 Fim de Jogo!</h1>
+      <div className="flex flex-col items-center justify-center gap-6 text-center relative fade-in-cyber pt-10">
+        <SoundToggle />
+        <h1
+  className="text-3xl font-bold drop-shadow-md glitch"
+  data-text="🏁 FIM DE JOGO!"
+>
+  🏁 FIM DE JOGO!
+</h1>
+
         <p className="text-xl text-gray-300">
           Dificuldade: <span className="font-semibold">{difficulty}</span>
         </p>
 
-        <div className="bg-gray-800 text-white px-8 py-6 rounded-lg shadow-lg border border-cyan-500">
+        <div className="bg-gray-900 text-white px-8 py-6 rounded-lg border border-cyan-500 shadow-md">
           <p className="text-2xl mb-2">
             Pontuação Final: <span className="text-green-400">{score}</span>
           </p>
@@ -177,18 +194,19 @@ export default function GameArea({ difficulty, onExit }: GameAreaProps) {
         </div>
 
         <div className="flex gap-4 mt-6">
-          <button
-            onClick={restartGame}
-            className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
-          >
-            Jogar Novamente
-          </button>
-          <button
-            onClick={onExit}
-            className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
-          >
-            Voltar ao Menu
-          </button>
+        <button
+  onClick={restartGame}
+  className="px-6 py-2 bg-blue-500 text-white rounded-lg btn-cyber"
+>
+  Jogar Novamente
+</button>
+<button
+  onClick={onExit}
+  className="px-6 py-2 bg-red-500 text-white rounded-lg btn-cyber"
+>
+  Voltar ao Menu
+</button>
+
         </div>
       </div>
     );
@@ -197,7 +215,7 @@ export default function GameArea({ difficulty, onExit }: GameAreaProps) {
   // === Tela do jogo ===
   return (
     <div className="flex flex-col items-center justify-center gap-6 text-center relative">
-      <SoundToggle bgMusic={bgMusic} />
+      <SoundToggle />
 
       <h1 className="text-3xl font-bold text-cyan-400">CyberType 2.0</h1>
       <p className="text-gray-300">
@@ -236,6 +254,8 @@ export default function GameArea({ difficulty, onExit }: GameAreaProps) {
           Melhor: <span className="text-yellow-400">{bestScore}</span>
         </p>
       </div>
+
+      <VirtualKeyboard />
 
       <button
         onClick={endGame}

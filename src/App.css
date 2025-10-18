@@ -196,3 +196,182 @@ button:hover {
   100% { transform: rotate(360deg); }
 }
 
+/* === BOTÃO DE SOM CYBER === */
+.sound-toggle {
+  position: fixed;
+  top: 24px;
+  right: 28px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.4);
+  border: 2px solid var(--cyan);
+  box-shadow: 0 0 10px var(--cyan), 0 0 20px var(--magenta);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  z-index: 99;
+}
+
+.sound-toggle:hover {
+  box-shadow: 0 0 20px var(--magenta), 0 0 40px var(--cyan);
+  transform: scale(1.1);
+}
+
+.sound-toggle.active {
+  animation: pulseGlow 1.8s ease-in-out infinite;
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 10px var(--cyan), 0 0 20px var(--magenta);
+  }
+  50% {
+    box-shadow: 0 0 20px var(--magenta), 0 0 40px var(--cyan);
+  }
+}
+
+/* === EFEITO DE FEEDBACK CYBER === */
+.correct-flash {
+  animation: flash-green 0.15s ease;
+}
+
+.wrong-flash {
+  animation: flash-red 0.15s ease;
+}
+
+@keyframes flash-green {
+  0% {
+    background: radial-gradient(circle at center, #00ffe7 0%, #000 100%);
+    box-shadow: 0 0 25px #00ffe7;
+  }
+  100% {
+    background: radial-gradient(circle at center, var(--bg) 0%, #000 100%);
+    box-shadow: none;
+  }
+}
+
+@keyframes flash-red {
+  0% {
+    background: radial-gradient(circle at center, #ff0044 0%, #000 100%);
+    box-shadow: 0 0 25px #ff0044;
+  }
+  100% {
+    background: radial-gradient(circle at center, var(--bg) 0%, #000 100%);
+    box-shadow: none;
+  }
+}
+
+/* === Transição Cyber Fade Suave === */
+@keyframes cyber-fade {
+  0% {
+    opacity: 0;
+    transform: scale(0.95);
+    filter: drop-shadow(0 0 4px #00ffe7);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    filter: drop-shadow(0 0 0px transparent);
+  }
+}
+
+.fade-in-cyber {
+  animation: cyber-fade 0.5s ease-out forwards;
+}
+
+/* === Botões com brilho suave === */
+.btn-cyber {
+  transition: all 0.25s ease;
+  box-shadow: 0 0 0px transparent;
+}
+
+.btn-cyber:hover {
+  box-shadow: 0 0 12px var(--cyan, #00ffe7);
+}
+
+/* === EFEITO GLITCH CYBERPUNK === */
+.glitch {
+  position: relative;
+  color: #00ffe7;
+  animation: glitch-flicker 2.5s infinite;
+  text-shadow: 0 0 6px #00ffe7;
+}
+
+.glitch::before,
+.glitch::after {
+  content: attr(data-text);
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  overflow: hidden;
+  color: #ff00ff;
+  clip: rect(0, 0, 0, 0);
+}
+
+.glitch::before {
+  animation: glitch-before 2.5s infinite linear alternate-reverse;
+}
+
+.glitch::after {
+  color: #00ffff;
+  animation: glitch-after 2.5s infinite linear alternate-reverse;
+}
+
+/* 💥 Cintilação leve */
+@keyframes glitch-flicker {
+  0%, 90%, 100% {
+    opacity: 1;
+  }
+  92%, 98% {
+    opacity: 0.8;
+    text-shadow: 0 0 8px #00ffe7;
+  }
+}
+
+/* 🔴 Canal vermelho deslocando */
+@keyframes glitch-before {
+  0% {
+    clip: rect(10px, 9999px, 80px, 0);
+    transform: translate(-2px, -2px);
+  }
+  20% {
+    clip: rect(50px, 9999px, 90px, 0);
+    transform: translate(2px, 2px);
+  }
+  40% {
+    clip: rect(30px, 9999px, 70px, 0);
+    transform: translate(-1px, 1px);
+  }
+  60%, 100% {
+    clip: rect(20px, 9999px, 80px, 0);
+    transform: translate(1px, -1px);
+  }
+}
+
+/* 🔵 Canal azul deslocando */
+@keyframes glitch-after {
+  0% {
+    clip: rect(15px, 9999px, 65px, 0);
+    transform: translate(1px, 1px);
+  }
+  25% {
+    clip: rect(60px, 9999px, 95px, 0);
+    transform: translate(-1px, -2px);
+  }
+  50% {
+    clip: rect(35px, 9999px, 70px, 0);
+    transform: translate(2px, 2px);
+  }
+  75%, 100% {
+    clip: rect(25px, 9999px, 80px, 0);
+    transform: translate(-2px, 1px);
+  }
+}
+
+
+
+
