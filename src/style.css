@@ -5,3 +5,16 @@
 body {
   @apply bg-gray-900 text-white font-mono;
 }
+
+/* === FEEDBACK GLOBAL === */
+body.correct-flash {
+  background-color: rgba(0, 255, 0, 0.15);
+  transition: background-color 0.15s ease;
+}
+
+body.wrong-flash {
+  background-color: rgba(255, 0, 0, 0.15);
+  transition: background-color 0.15s ease;
+}
+
+

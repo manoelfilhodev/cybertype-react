@@ -1,40 +1,49 @@
-import { useState } from "react";
+// =============================
+// 🕹️ Menu.tsx — Tela inicial CyberType 2.0 (Cyberpunk Neon)
+// =============================
 
-export default function Menu({ onStart }: { onStart: (difficulty: string) => void }) {
-  const [difficulty, setDifficulty] = useState("medium");
+export default function Menu({ onStart }: any) {
+  function handleStart(level: string) {
+    // 🔊 Tocar música quando o jogador clicar
+    const music = new Audio("/assets/sounds/bg-music.mp3");
+    music.loop = true;
+    music.volume = 0.35;
+    music.play();
+    onStart(level);
+  }
 
   return (
-    <div className="text-center space-y-6">
-      <h1 className="text-5xl font-bold text-cyan-400">CYBERTYPE</h1>
-      <p className="text-gray-400">Treine sua velocidade e precisão na digitação</p>
+    <div className="relative flex flex-col items-center justify-center gap-8 h-screen text-center">
+      <h1 id="introLogo">CYBERTYPE_<span>2.0</span></h1>
+      
+      <p className="text-gray-400 text-lg tracking-wide">
+        Escolha sua dificuldade:
+      </p>
 
-      <div className="space-y-2">
-        <p className="text-gray-300 font-semibold">Selecione a dificuldade:</p>
-        <div className="flex justify-center space-x-3">
-          {["easy", "medium", "hard"].map((level) => (
-            <button
-              key={level}
-              onClick={() => setDifficulty(level)}
-              className={`px-4 py-2 rounded-lg text-sm capitalize transition ${
-                difficulty === level
-                  ? "bg-cyan-500 text-white"
-                  : "bg-gray-700 text-gray-300 hover:bg-gray-600"
-              }`}
-            >
-              {level === "easy" && "Fácil"}
-              {level === "medium" && "Médio"}
-              {level === "hard" && "Difícil"}
-            </button>
-          ))}
-        </div>
+      <div className="flex gap-6">
+        <button
+          onClick={() => handleStart("easy")}
+          className="px-8 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 shadow-neon-green text-lg"
+        >
+          Fácil
+        </button>
+        <button
+          onClick={() => handleStart("medium")}
+          className="px-8 py-3 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 shadow-neon-yellow text-lg"
+        >
+          Médio
+        </button>
+        <button
+          onClick={() => handleStart("hard")}
+          className="px-8 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 shadow-neon-red text-lg"
+        >
+          Difícil
+        </button>
       </div>
 
-      <button
-        onClick={() => onStart(difficulty)}
-        className="bg-cyan-500 hover:bg-cyan-600 text-white px-6 py-3 rounded-lg transition"
-      >
-        Iniciar Jogo
-      </button>
+      <footer className="absolute bottom-6 text-cyan-400 text-sm opacity-70">
+        <span>⚡ Desenvolvido por Systex Systems • 2077 Edition</span>
+      </footer>
     </div>
   );
 }

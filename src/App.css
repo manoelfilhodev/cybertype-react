@@ -1,0 +1,198 @@
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+
+/* === VARIÁVEIS === */
+:root {
+  --cyan: #00ffe7;
+  --magenta: #ff00ff;
+  --bg: #050510;
+}
+
+/* === BASE GERAL === */
+body {
+  background: radial-gradient(circle at center, var(--bg) 0%, #000 100%);
+  color: var(--cyan);
+  font-family: 'Share Tech Mono', monospace;
+  text-align: center;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  margin: 0;
+}
+
+h1, h2, h3 {
+  text-transform: uppercase;
+  letter-spacing: 3px;
+}
+
+/* === INTRO CYBERPUNK === */
+#intro {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at center, #050510 0%, #000 100%);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  animation: introShow 1s ease-out;
+  z-index: 9999;
+}
+
+#bgCanvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+
+#logoArea {
+  z-index: 2;
+  text-align: center;
+  animation: introFade 1s ease-out forwards 1s;
+  opacity: 0;
+}
+
+#introLogo {
+  font-size: 4rem;
+  color: #00ffe7;
+  text-shadow: 0 0 20px #00ffff, 0 0 40px #00ffe7;
+  letter-spacing: 2px;
+  animation: glitchText 2s infinite;
+}
+
+#introLogo span {
+  color: #ff00ff;
+  text-shadow: 0 0 20px #ff00ff, 0 0 40px #ff00ff;
+}
+
+.introSub {
+  color: #ff00ff;
+  font-size: 1rem;
+  letter-spacing: 3px;
+  text-shadow: 0 0 10px #ff00ff;
+  margin-top: 10px;
+}
+
+#scanline {
+  position: absolute;
+  top: -100%;
+  left: 0;
+  width: 100%;
+  height: 200%;
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(0, 255, 255, 0.3) 50%,
+    rgba(255, 255, 255, 0.1) 100%
+  );
+  animation: scanMove 2.5s linear infinite;
+  z-index: 1;
+  mix-blend-mode: overlay;
+}
+
+/* === ANIMAÇÕES === */
+@keyframes introShow {
+  from { opacity: 0; filter: blur(20px); }
+  to { opacity: 1; filter: blur(0); }
+}
+
+@keyframes introFade {
+  to { opacity: 1; }
+}
+
+@keyframes glitchText {
+  0%, 100% { transform: translate(0, 0); }
+  25% { transform: translate(2px, -2px); }
+  50% { transform: translate(-2px, 2px); }
+  75% { transform: translate(1px, -1px); }
+}
+
+@keyframes scanMove {
+  0% { top: -100%; }
+  100% { top: 100%; }
+}
+
+/* === MENU === */
+#menu-screen {
+  animation: fadeIn 1s ease-out;
+  z-index: 5;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); filter: blur(10px); }
+  to { opacity: 1; transform: scale(1); filter: blur(0); }
+}
+
+/* === FOOTER === */
+footer {
+  position: absolute;
+  bottom: 10px;
+  font-size: 0.8rem;
+  color: #888;
+  letter-spacing: 2px;
+  opacity: 0.5;
+  text-shadow: 0 0 5px #00ffe7;
+}
+
+/* === BOTÕES === */
+/* === BOTÕES HOLOGRÁFICOS === */
+button {
+  position: relative;
+  background: rgba(0, 0, 0, 0.3);
+  border: 2px solid var(--cyan);
+  color: var(--cyan);
+  padding: 12px 36px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-family: 'Share Tech Mono', monospace;
+  letter-spacing: 2px;
+  font-size: 1rem;
+  text-transform: uppercase;
+  transition: all 0.25s ease-in-out;
+  box-shadow: 0 0 12px rgba(0, 255, 231, 0.5);
+  overflow: hidden;
+}
+
+button::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: conic-gradient(
+    from 180deg,
+    var(--cyan),
+    var(--magenta),
+    var(--cyan)
+  );
+  opacity: 0.2;
+  animation: rotateGlow 3s linear infinite;
+  z-index: 0;
+}
+
+button span {
+  position: relative;
+  z-index: 1;
+}
+
+button:hover {
+  color: #000;
+  background: linear-gradient(90deg, var(--cyan), var(--magenta));
+  box-shadow:
+    0 0 10px var(--cyan),
+    0 0 30px var(--magenta),
+    0 0 60px var(--cyan);
+  transform: scale(1.05);
+}
+
+@keyframes rotateGlow {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
