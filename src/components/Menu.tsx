@@ -1,5 +1,5 @@
 // =============================
-// 🕹️ Menu.tsx — CyberType 2.0 com saudação cyberpunk após login
+// 🕹️ Menu.tsx — CyberType 2.0 (login sem recarregar, com estado local do usuário)
 // =============================
 import { useEffect, useRef, useState } from "react";
 import { audioManager } from "../core/audioManager";
@@ -8,6 +8,8 @@ import {
   loginWithGithub,
   loginWithDiscord,
   loginWithApple,
+  logoutUser,
+  watchAuthState,
 } from "../core/authService";
 import { FaGoogle, FaGithub, FaDiscord, FaApple, FaSignOutAlt } from "react-icons/fa";
 
@@ -16,40 +18,60 @@ interface MenuProps {
   onSettings: () => void;
 }
 
-export default function Menu({ onStart }: MenuProps) {
+export default function Menu({ onStart, onSettings }: MenuProps) {
   const textRef = useRef<HTMLParagraphElement | null>(null);
+
+  // === Estado do usuário (inicializa do localStorage e mantém via Firebase) ===
   const [user, setUser] = useState<any>(() => {
     const saved = localStorage.getItem("cyberUser");
     return saved ? JSON.parse(saved) : null;
   });
 
-  // === LOGIN ===
+  useEffect(() => {
+    const unsub = watchAuthState((u) => {
+      setUser(u);
+      if (u) {
+        localStorage.setItem("cyberUser", JSON.stringify(u));
+      } else {
+        localStorage.removeItem("cyberUser");
+      }
+    });
+    return () => unsub();
+  }, []);
+
+  // === Funções de login (sem reload da página) ===
   const handleLogin = async (providerFn: any) => {
     try {
       const result = await providerFn();
       const loggedUser = result.user;
-      localStorage.setItem("cyberUser", JSON.stringify(loggedUser));
-      setUser(loggedUser);
+      setUser(loggedUser); // atualiza o estado do menu
+      localStorage.setItem("cyberUser", JSON.stringify(loggedUser)); // persiste sessão
+      // ✅ sem window.location.reload() para não voltar à IntroScreen
     } catch (err: any) {
+      console.error("Erro ao autenticar:", err);
       alert("Falha ao autenticar: " + err.message);
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("cyberUser");
-    setUser(null);
+  const handleLogout = async () => {
+    try {
+      await logoutUser();
+      setUser(null);
+    } catch (e) {
+      console.error(e);
+    }
   };
 
-  // === INICIAR JOGO ===
-  const handleStart = (level: string) => {
+  // === Iniciar o jogo ===
+  function handleStart(level: string) {
     if (audioManager.musicEnabled) audioManager.play();
     audioManager.playKey();
     audioManager.playHit();
     audioManager.playError();
     onStart(level);
-  };
+  }
 
-  // === EFEITO DE PARTÍCULAS ===
+  // === Efeito de partículas ===
   useEffect(() => {
     const canvas = document.getElementById("bgParticles") as HTMLCanvasElement;
     if (!canvas) return;
@@ -69,7 +91,6 @@ export default function Menu({ onStart }: MenuProps) {
     }));
 
     let animationFrame: number;
-
     const draw = () => {
       ctx.clearRect(0, 0, width, height);
       for (const p of particles) {
@@ -79,7 +100,6 @@ export default function Menu({ onStart }: MenuProps) {
         ctx.shadowColor = p.c;
         ctx.shadowBlur = 6;
         ctx.fill();
-
         p.x += p.vx;
         p.y += p.vy;
         if (p.x < 0 || p.x > width) p.vx *= -1;
@@ -87,7 +107,6 @@ export default function Menu({ onStart }: MenuProps) {
       }
       animationFrame = requestAnimationFrame(draw);
     };
-
     draw();
 
     const handleResize = () => {
@@ -102,7 +121,7 @@ export default function Menu({ onStart }: MenuProps) {
     };
   }, []);
 
-  // === EFEITO DE DIGITAÇÃO ===
+  // === Efeito de digitação ===
   useEffect(() => {
     const fullText = user
       ? `🧠 Acesso neural concedido, ${user.displayName?.split(" ")[0]}_404`
@@ -111,7 +130,6 @@ export default function Menu({ onStart }: MenuProps) {
     const el = textRef.current;
     if (!el) return;
     el.textContent = "";
-
     const type = () => {
       el.textContent = fullText.slice(0, i);
       i++;
@@ -132,17 +150,18 @@ export default function Menu({ onStart }: MenuProps) {
           CYBERTYPE_<span className="text-pink-500">2.0</span>
         </h1>
 
-        {/* === SAUDAÇÃO CYBERPUNK === */}
+        {/* === Saudação / Perfil do usuário === */}
         {user && (
-          <div className="flex flex-col items-center gap-3 animate-pulse">
-            <img
-              src={user.photoURL}
-              alt="Avatar"
-              className="w-16 h-16 rounded-full border-2 border-pink-500 shadow-[0_0_10px_#ff00ff]"
-            />
-            <p className="text-cyan-400 font-mono text-sm tracking-widest">
-              Bem-vindo de volta, {user.displayName?.split(" ")[0]}_
-              <span className="text-pink-500">404</span>
+          <div className="flex flex-col items-center gap-3 animate-fadeIn">
+            {user.photoURL && (
+              <img
+                src={user.photoURL}
+                alt="Avatar"
+                className="w-16 h-16 rounded-full border-2 border-pink-500 shadow-[0_0_10px_#ff00ff]"
+              />
+            )}
+            <p className="text-gray-300 font-mono text-sm tracking-widest">
+              {user.displayName}
             </p>
             <button
               onClick={handleLogout}
@@ -153,11 +172,10 @@ export default function Menu({ onStart }: MenuProps) {
           </div>
         )}
 
-        {/* === BOTÕES DE DIFICULDADE === */}
+        {/* === Botões de dificuldade === */}
         <p className="text-gray-400 text-lg md:text-xl tracking-wide mt-2">
           Escolha sua dificuldade:
         </p>
-
         <div className="flex flex-wrap justify-center gap-6 mt-6">
           {[
             { label: "Fácil", value: "easy" },
@@ -180,13 +198,22 @@ export default function Menu({ onStart }: MenuProps) {
           ))}
         </div>
 
-        {/* === RODAPÉ === */}
+        {/* === BOTÃO DE CONFIGURAÇÕES === */}
+        <button
+          onClick={onSettings}
+          className="absolute top-6 right-6 p-3 rounded-full bg-gray-900/70 border border-cyan-500 hover:bg-cyan-500 hover:text-black transition-all shadow-[0_0_10px_#00ffe7]"
+          title="Abrir Configurações"
+        >
+          ⚙️
+        </button>
+
+        {/* === Rodapé === */}
         <footer className="absolute bottom-6 w-full flex flex-col items-center justify-center text-gray-400 text-sm tracking-widest">
           <p ref={textRef} className="text-xs text-gray-400 mb-3 font-mono typing-text">
             <span className="text-cyan-400 cursor">█</span>
           </p>
 
-          {/* === MOSTRA OS ÍCONES SE NÃO TIVER LOGIN === */}
+          {/* === Ícones de login (somente quando não logado) === */}
           {!user && (
             <div className="flex gap-6 mb-3 text-2xl">
               <FaGoogle
