@@ -1,10 +1,16 @@
 // =============================
-// 🕹️ Menu.tsx — CyberType 2.0 (otimizado para performance)
+// 🕹️ Menu.tsx — CyberType 2.0 com saudação cyberpunk após login
 // =============================
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { audioManager } from "../core/audioManager";
 import IconButton from "./IconButton";
-import { FaGoogle, FaGithub, FaDiscord, FaApple } from "react-icons/fa";
+import {
+  loginWithGoogle,
+  loginWithGithub,
+  loginWithDiscord,
+  loginWithApple,
+} from "../core/authService";
+import { FaGoogle, FaGithub, FaDiscord, FaApple, FaSignOutAlt } from "react-icons/fa";
 
 interface MenuProps {
   onStart: (level: string) => void;
@@ -13,16 +19,38 @@ interface MenuProps {
 
 export default function Menu({ onStart, onSettings }: MenuProps) {
   const textRef = useRef<HTMLParagraphElement | null>(null);
+  const [user, setUser] = useState<any>(() => {
+    const saved = localStorage.getItem("cyberUser");
+    return saved ? JSON.parse(saved) : null;
+  });
 
-  function handleStart(level: string) {
+  // === LOGIN ===
+  const handleLogin = async (providerFn: any) => {
+    try {
+      const result = await providerFn();
+      const loggedUser = result.user;
+      localStorage.setItem("cyberUser", JSON.stringify(loggedUser));
+      setUser(loggedUser);
+    } catch (err: any) {
+      alert("Falha ao autenticar: " + err.message);
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("cyberUser");
+    setUser(null);
+  };
+
+  // === INICIAR JOGO ===
+  const handleStart = (level: string) => {
     if (audioManager.musicEnabled) audioManager.play();
     audioManager.playKey();
     audioManager.playHit();
     audioManager.playError();
     onStart(level);
-  }
+  };
 
-  // === EFEITO DE PARTÍCULAS CYBERPUNK OTIMIZADO ===
+  // === EFEITO DE PARTÍCULAS ===
   useEffect(() => {
     const canvas = document.getElementById("bgParticles") as HTMLCanvasElement;
     if (!canvas) return;
@@ -75,9 +103,11 @@ export default function Menu({ onStart, onSettings }: MenuProps) {
     };
   }, []);
 
-  // === EFEITO DE DIGITAÇÃO LEVE (DOM direto, sem re-render) ===
+  // === EFEITO DE DIGITAÇÃO ===
   useEffect(() => {
-    const fullText = "FAÇA LOGIN COM SUA CONTA NEURAL ↓";
+    const fullText = user
+      ? `🧠 Acesso neural concedido, ${user.displayName?.split(" ")[0]}_404`
+      : "FAÇA LOGIN COM SUA CONTA NEURAL ↓";
     let i = 0;
     const el = textRef.current;
     if (!el) return;
@@ -89,7 +119,7 @@ export default function Menu({ onStart, onSettings }: MenuProps) {
       if (i <= fullText.length) requestAnimationFrame(() => setTimeout(type, 50));
     };
     type();
-  }, []);
+  }, [user]);
 
   return (
     <div className="cyber-container text-center relative bg-cyberpulse overflow-hidden">
@@ -103,49 +133,85 @@ export default function Menu({ onStart, onSettings }: MenuProps) {
           CYBERTYPE_<span className="text-pink-500">2.0</span>
         </h1>
 
+        {/* === SAUDAÇÃO CYBERPUNK === */}
+        {user && (
+          <div className="flex flex-col items-center gap-3 animate-pulse">
+            <img
+              src={user.photoURL}
+              alt="Avatar"
+              className="w-16 h-16 rounded-full border-2 border-pink-500 shadow-[0_0_10px_#ff00ff]"
+            />
+            <p className="text-cyan-400 font-mono text-sm tracking-widest">
+              Bem-vindo de volta, {user.displayName?.split(" ")[0]}_
+              <span className="text-pink-500">404</span>
+            </p>
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-2 bg-pink-600 hover:bg-pink-700 text-white text-xs px-4 py-2 rounded-lg mt-1 transition-all shadow-[0_0_10px_#ff00ff]"
+            >
+              <FaSignOutAlt /> Encerrar Sessão Neural
+            </button>
+          </div>
+        )}
+
+        {/* === BOTÕES DE DIFICULDADE === */}
         <p className="text-gray-400 text-lg md:text-xl tracking-wide mt-2">
           Escolha sua dificuldade:
         </p>
 
         <div className="flex flex-wrap justify-center gap-6 mt-6">
-  {[
-    { label: "Fácil", value: "easy", color: "green" },
-    { label: "Médio", value: "medium", color: "yellow" },
-    { label: "Difícil", value: "hard", color: "red" },
-  ].map((lvl, i) => (
-    <button
-      key={lvl.value}
-      onClick={() => handleStart(lvl.value)} // ✅ agora envia o valor certo
-      className={`px-8 py-3 md:px-10 md:py-4 text-white rounded-lg text-lg font-semibold transition-all duration-300 ${
-        i === 0
-          ? "bg-green-500 hover:bg-green-600 shadow-[0_0_15px_#00ff88]"
-          : i === 1
-          ? "bg-yellow-500 hover:bg-yellow-600 shadow-[0_0_15px_#ffcc00]"
-          : "bg-red-500 hover:bg-red-600 shadow-[0_0_15px_#ff0044]"
-      }`}
-    >
-      {lvl.label}
-    </button>
-  ))}
-</div>
-
-
-        <div className="flex justify-center mt-10">
-          <IconButton icon="⚙️" onClick={onSettings} title="Configurações" />
+          {[
+            { label: "Fácil", value: "easy" },
+            { label: "Médio", value: "medium" },
+            { label: "Difícil", value: "hard" },
+          ].map((lvl, i) => (
+            <button
+              key={lvl.value}
+              onClick={() => handleStart(lvl.value)}
+              className={`px-8 py-3 md:px-10 md:py-4 text-white rounded-lg text-lg font-semibold transition-all duration-300 ${
+                i === 0
+                  ? "bg-green-500 hover:bg-green-600 shadow-[0_0_15px_#00ff88]"
+                  : i === 1
+                  ? "bg-yellow-500 hover:bg-yellow-600 shadow-[0_0_15px_#ffcc00]"
+                  : "bg-red-500 hover:bg-red-600 shadow-[0_0_15px_#ff0044]"
+              }`}
+            >
+              {lvl.label}
+            </button>
+          ))}
         </div>
 
+        {/* === RODAPÉ === */}
         <footer className="absolute bottom-6 w-full flex flex-col items-center justify-center text-gray-400 text-sm tracking-widest">
           <p ref={textRef} className="text-xs text-gray-400 mb-3 font-mono typing-text">
-            {/* texto animado via ref */}
             <span className="text-cyan-400 cursor">█</span>
           </p>
 
-          <div className="flex gap-6 mb-3 text-2xl">
-            <FaGoogle className="cursor-pointer hover:text-pink-500 hover:drop-shadow-[0_0_8px_#ff00ff] transition" title="Google" />
-            <FaGithub className="cursor-pointer hover:text-cyan-400 hover:drop-shadow-[0_0_8px_#00ffe7] transition" title="GitHub" />
-            <FaDiscord className="cursor-pointer hover:text-pink-500 hover:drop-shadow-[0_0_8px_#ff00ff] transition" title="Discord" />
-            <FaApple className="cursor-pointer hover:text-cyan-400 hover:drop-shadow-[0_0_8px_#00ffe7] transition" title="Apple" />
-          </div>
+          {/* === MOSTRA OS ÍCONES SE NÃO TIVER LOGIN === */}
+          {!user && (
+            <div className="flex gap-6 mb-3 text-2xl">
+              <FaGoogle
+                onClick={() => handleLogin(loginWithGoogle)}
+                className="cursor-pointer hover:text-pink-500 hover:drop-shadow-[0_0_8px_#ff00ff] transition"
+                title="Entrar com Google"
+              />
+              <FaGithub
+                onClick={() => handleLogin(loginWithGithub)}
+                className="cursor-pointer hover:text-cyan-400 hover:drop-shadow-[0_0_8px_#00ffe7] transition"
+                title="Entrar com GitHub"
+              />
+              <FaDiscord
+                onClick={() => handleLogin(loginWithDiscord)}
+                className="cursor-pointer hover:text-pink-500 hover:drop-shadow-[0_0_8px_#ff00ff] transition"
+                title="Entrar com Discord"
+              />
+              <FaApple
+                onClick={() => handleLogin(loginWithApple)}
+                className="cursor-pointer hover:text-cyan-400 hover:drop-shadow-[0_0_8px_#00ffe7] transition"
+                title="Entrar com Apple"
+              />
+            </div>
+          )}
 
           <p className="text-xs text-gray-500 font-mono neon-text">
             Desenvolvido por <span className="text-cyan-400">SYSTEX</span> © 2025 — 

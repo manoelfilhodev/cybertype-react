@@ -1,6 +1,5 @@
 // =============================
-// 🎮 GameArea.tsx — CyberType 2.0
-// (React + Timer + Resultado + Sons + Flash Visual)
+// 🎮 GameArea.tsx — CyberType 2.0 (versão premium UX)
 // =============================
 
 import "../App.css";
@@ -9,6 +8,7 @@ import { getRandomWord } from "../core/words";
 import { saveScore, getBestScore } from "../core/storage";
 import VirtualKeyboard from "./VirtualKeyboard";
 import { audioManager } from "../core/audioManager";
+import { FaTwitter, FaWhatsapp, FaLink } from "react-icons/fa";
 
 interface GameAreaProps {
   difficulty: string;
@@ -23,16 +23,28 @@ export default function GameArea({ difficulty, onExit }: GameAreaProps) {
   const [startTime, setStartTime] = useState<number>(0);
   const [timeLeft, setTimeLeft] = useState<number>(10);
   const [gameOver, setGameOver] = useState<boolean>(false);
+  const [showAnalyzing, setShowAnalyzing] = useState<boolean>(false);
+
+  // novas métricas
+  const [totalTyped, setTotalTyped] = useState<number>(0);
+  const [errors, setErrors] = useState<number>(0);
+  const [record, setRecord] = useState<number>(0);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // 🧠 Recupera usuário logado
+  const [user] = useState<any>(() => {
+    const saved = localStorage.getItem("cyberUser");
+    return saved ? JSON.parse(saved) : null;
+  });
 
   // === Inicialização ===
   useEffect(() => {
     setBestScore(getBestScore(difficulty));
+    setRecord(getBestScore(difficulty));
     startNewWord();
     inputRef.current?.focus();
 
-    // 🎵 mantém a música se ativada
     if (audioManager.musicEnabled) audioManager.play();
 
     return () => {
@@ -42,7 +54,6 @@ export default function GameArea({ difficulty, onExit }: GameAreaProps) {
     };
   }, [difficulty]);
 
-  // === Atualiza contagem regressiva ===
   useEffect(() => {
     if (timeLeft <= 0 && !gameOver) handleTimeout();
   }, [timeLeft]);
@@ -79,15 +90,13 @@ export default function GameArea({ difficulty, onExit }: GameAreaProps) {
     stopTimer();
     flashFeedback("wrong");
     audioManager.playError();
-
-    setTimeout(() => {
-      endGame();
-    }, 500);
+    setTimeout(() => endGame(), 500);
   }
 
   // === Entrada ===
   function handleInput(value: string) {
     setInputValue(value);
+    setTotalTyped((prev) => prev + 1);
     audioManager.playKey();
 
     if (value === currentWord) handleCorrect();
@@ -109,6 +118,7 @@ export default function GameArea({ difficulty, onExit }: GameAreaProps) {
 
   // === Erro ===
   function handleWrong() {
+    setErrors((prev) => prev + 1);
     flashFeedback("wrong");
     audioManager.playError();
   }
@@ -117,38 +127,49 @@ export default function GameArea({ difficulty, onExit }: GameAreaProps) {
   function flashFeedback(type: "correct" | "wrong") {
     const el = document.getElementById("game-container");
     if (!el) return;
-  
     el.classList.add(type === "correct" ? "cyber-flash-green" : "cyber-flash-red");
-  
-    setTimeout(() => {
-      el.classList.remove("cyber-flash-green", "cyber-flash-red");
-    }, 250);
+    setTimeout(() => el.classList.remove("cyber-flash-green", "cyber-flash-red"), 250);
   }
-  
+
+  // === Cálculos ===
+  const accuracy = totalTyped > 0 ? ((totalTyped - errors) / totalTyped) * 100 : 0;
+  const wpm = totalTyped > 0 ? (totalTyped / 5) / ((60 - timeLeft) / 60) : 0;
 
   // === Fim de jogo ===
   function endGame() {
     stopTimer();
     saveScore(score, difficulty);
     setBestScore(getBestScore(difficulty));
-    setGameOver(true);
+    setShowAnalyzing(true);
+    setTimeout(() => {
+      setShowAnalyzing(false);
+      setGameOver(true);
+    }, 1000);
   }
 
   // === Reiniciar ===
   function restartGame() {
     setScore(0);
+    setErrors(0);
+    setTotalTyped(0);
     setGameOver(false);
     startNewWord();
+  }
+
+  // === Tela "Analisando desempenho" ===
+  if (showAnalyzing) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen text-cyan-400 font-mono animate-pulse">
+        ⏳ Analisando desempenho neural...
+      </div>
+    );
   }
 
   // === Tela de resultado ===
   if (gameOver) {
     return (
       <div className="flex flex-col items-center justify-center gap-6 text-center relative fade-in-cyber pt-10">
-        <h1
-          className="text-3xl font-bold drop-shadow-md glitch"
-          data-text="🏁 FIM DE JOGO!"
-        >
+        <h1 className="text-3xl font-bold text-cyan-400 drop-shadow-[0_0_15px_#00ffe7]">
           🏁 FIM DE JOGO!
         </h1>
 
@@ -156,36 +177,100 @@ export default function GameArea({ difficulty, onExit }: GameAreaProps) {
           Dificuldade: <span className="font-semibold">{difficulty}</span>
         </p>
 
-        <div className="bg-gray-900 text-white px-8 py-6 rounded-lg border border-cyan-500 shadow-md">
-          <p className="text-2xl mb-2">
-            Pontuação Final: <span className="text-green-400">{score}</span>
-          </p>
-          <p className="text-lg text-yellow-400">
-            Melhor Pontuação: {bestScore}
-          </p>
+        {/* Avatar */}
+        {user && (
+          <div className="flex flex-col items-center mb-4 animate-fadeIn">
+            <img
+              src={user.photoURL}
+              alt="Avatar"
+              className="w-20 h-20 rounded-full border-2 border-pink-500 shadow-[0_0_12px_#ff00ff]"
+            />
+            <p className="mt-2 text-cyan-400 text-sm tracking-widest font-mono">
+              Operador: <span className="text-pink-500">{user.displayName}</span>
+            </p>
+          </div>
+        )}
+
+        {/* Estatísticas detalhadas */}
+        <div className="bg-[#0a0a12] text-white px-8 py-6 rounded-lg border border-cyan-500 shadow-[0_0_15px_#00ffe7] space-y-2 text-lg font-mono text-left">
+          <p>🏆 Pontuação: <span className="text-yellow-400">{score}</span></p>
+          <p>⌨️ Palavras digitadas: <span className="text-cyan-300">{totalTyped}</span></p>
+          <p>❌ Erros: <span className="text-red-400">{errors}</span></p>
+          <p>🎯 Precisão: <span className="text-green-400">{accuracy.toFixed(1)}%</span></p>
+          <p>⚡ WPM: <span className="text-blue-400">{wpm.toFixed(1)}</span></p>
+          <p>🥇 Recorde atual: <span className="text-purple-400">{record}</span></p>
         </div>
 
-        <div className="flex gap-4 mt-6">
+        {/* Botões principais */}
+        <div className="flex flex-col md:flex-row gap-4 mt-6">
           <button
             onClick={restartGame}
-            className="px-6 py-2 bg-blue-500 text-white rounded-lg btn-cyber"
+            className="px-8 py-3 bg-gradient-to-r from-cyan-400 to-blue-500 text-black font-bold rounded-xl shadow-[0_0_20px_#00ffff] hover:scale-105 transition-all"
           >
-            Jogar Novamente
+            🔁 Reiniciar Simulação
           </button>
           <button
             onClick={onExit}
-            className="px-6 py-2 bg-red-500 text-white rounded-lg btn-cyber"
+            className="px-8 py-3 bg-gray-800 text-cyan-300 border border-cyan-500 rounded-xl hover:bg-gray-700 hover:text-white transition-all"
           >
-            Voltar ao Menu
+            ⬅️ Retornar ao Menu Neural
           </button>
         </div>
+
+        {/* Barra de compartilhamento */}
+        <div className="flex justify-center gap-6 mt-8">
+          <FaTwitter
+            title="Compartilhar no X"
+            onClick={() =>
+              window.open(
+                `https://twitter.com/intent/tweet?text=${encodeURIComponent(
+                  `🔥 Fiz ${score} pontos no CyberType_2.0 (${difficulty})! 💥`
+                )}`,
+                "_blank"
+              )
+            }
+            className="text-[#1DA1F2] text-2xl cursor-pointer hover:scale-110 transition-all drop-shadow-[0_0_10px_#1DA1F2]"
+          />
+          <FaWhatsapp
+            title="Compartilhar no WhatsApp"
+            onClick={() =>
+              window.open(
+                `https://wa.me/?text=${encodeURIComponent(
+                  `🔥 Fiz ${score} pontos no CyberType_2.0 (${difficulty})! 👾`
+                )}`,
+                "_blank"
+              )
+            }
+            className="text-[#25D366] text-2xl cursor-pointer hover:scale-110 transition-all drop-shadow-[0_0_10px_#25D366]"
+          />
+          <FaLink
+            title="Copiar Resultado"
+            onClick={() => {
+              navigator.clipboard.writeText(
+                `CyberType_2.0 — ${score} pontos (${difficulty}) 💥`
+              );
+              alert("🔗 Resultado copiado para a área de transferência!");
+            }}
+            className="text-gray-400 text-2xl cursor-pointer hover:scale-110 hover:text-cyan-400 transition-all"
+          />
+        </div>
+
+        {/* Frase final */}
+        <p className="mt-6 text-xs text-gray-500 font-mono animate-pulse">
+          {user
+            ? "🧠 Sincronização concluída com sucesso."
+            : "⚠️ Acesso neural não autenticado — resultado não sincronizado."}
+        </p>
       </div>
     );
   }
 
-  // === Tela principal ===
+  // === Tela principal (jogo ativo) ===
   return (
-    <div id="game-container" className="flex flex-col items-center justify-center gap-6 text-center relative">
+    <div
+      id="game-container"
+      className="flex flex-col items-center justify-center gap-6 text-center relative"
+    >
       <h1 className="text-3xl font-bold text-cyan-400 drop-shadow-[0_0_10px_#00ffe7]">
         CyberType 2.0
       </h1>
