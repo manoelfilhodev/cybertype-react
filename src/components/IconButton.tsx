@@ -14,7 +14,6 @@ interface IconButtonProps {
     onClick,
     title,
     active = false,
-    color = "cyan",
   }: IconButtonProps) {
     const borderColor = active ? "border-pink-500" : "border-cyan-400";
     const textColor = active ? "text-pink-400" : "text-cyan-400";
