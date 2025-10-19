@@ -77,7 +77,7 @@ export default function TotemFormation({
 
       particles.forEach((p) => {
         // movimento pulsante em direção ao centro
-        const angle = Math.atan2(p.y - cy, p.x - cx);
+        // const angle = Math.atan2(p.y - cy, p.x - cx);
         const dist = Math.hypot(p.x - cx, p.y - cy);
         const force = Math.sin(time / 50) * 0.3;
         p.vx -= (p.x - cx) / dist * 0.005 * force;

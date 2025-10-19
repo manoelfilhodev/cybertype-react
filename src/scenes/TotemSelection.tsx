@@ -67,7 +67,7 @@ export default function TotemSelection({ onContinue }: { onContinue: () => void 
   const [confirmed, setConfirmed] = useState(false);
   const [animating, setAnimating] = useState(false);
 
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  // const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const playSound = (src: string, vol = 0.4) => {
     const a = new Audio(src);

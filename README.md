@@ -1,145 +1,121 @@
-# ⚡ CYBERTYPE 2.0 — O Desafio da Digitação
-
-> 🧠 Um jogo futurista que testa sua velocidade, precisão e foco — com estética cyberpunk e trilha sonora imersiva.
-
-![CyberType Banner](https://github.com/manoelfilhodev/cybertype-2.0/assets/banner-cybertype.gif)
+# 🧠 CYBERTYPE_2.0  
+### Simulador Neural de Digitação — Desenvolvido por **SYSTEX Inteligência Digital**
 
 ---
 
-## 🕹️ Sobre o Projeto
+## 🌌 Visão Geral
 
-**CyberType 2.0** é um jogo de **digitação e reflexos**, desenvolvido em **React + TypeScript**, com uma estética **neon-cyberpunk** inspirada em arcades futuristas.  
-O objetivo é **digitar as palavras que aparecem o mais rápido possível**, ganhando pontos por acertos e penalidades por erros.
+**CyberType_2.0** é mais do que um simples jogo de digitação.  
+É uma simulação neural de performance cognitiva, projetada para testar velocidade, precisão e foco em um ambiente **cyberpunk interativo**.
 
-O jogo conta com:
-- 💡 **Sons interativos:** clique, erro e acerto com controle de volume.  
-- 🎵 **Trilha sonora futurista**, com opção para pausar.  
-- ⚙️ **Tela de configurações (Settings)** para personalização de som e experiência.  
-- 🧩 **Diferentes níveis de dificuldade** (Easy, Medium, Hard).  
-- 🎯 **Sistema de pontuação e histórico local** com registro dos melhores resultados.  
-- 🎨 **Visual imersivo em neon**, com animações e tipografia _tech-mono_.
+Cada operador é conectado à rede por meio de uma **conta neural** (login social).  
+O sistema então coleta métricas de desempenho em tempo real e gera um **relatório de análise neural** após cada simulação.
 
 ---
 
-## 🚀 Tecnologias Utilizadas
+## ⚙️ Recursos Atuais
 
-| Tecnologia | Função |
-|-------------|--------|
-| ⚛️ **React** | Estrutura principal do jogo |
-| 🧠 **TypeScript** | Tipagem estática e robustez |
-| 🎧 **Web Audio API** | Sons interativos e efeitos |
-| 🎨 **TailwindCSS** | Estilização moderna e responsiva |
-| 💾 **LocalStorage** | Salvamento local de scores |
+| Módulo | Descrição |
+|--------|------------|
+| **Autenticação Neural** | Login via Google, GitHub, Discord e Apple (Firebase Auth) |
+| **Análise Pós-Jogo** | Cálculo de Score, Precisão, WPM, Total Digitado e Erros |
+| **Interface Cyberpunk** | Efeitos neon, animações glitch e partículas em movimento |
+| **Áudio Dinâmico** | Sons de tecla, acerto e erro com feedback visual instantâneo |
+| **Ranking Neural (em desenvolvimento)** | Sincronização de resultados com Firestore |
+| **Compartilhamento** | Envio de resultados via X (Twitter), WhatsApp e link direto |
+| **Configurações Avançadas** | Controle de som, volume e modo de simulação |
 
 ---
 
-## 🧩 Estrutura de Pastas
+## 🕹️ Experiência do Operador
 
+O fluxo principal segue o padrão de simulação neural:
+
+```
+[INÍCIO] → Análise do Operador
+ ↓
+Conexão Neural Estabelecida
+ ↓
+Simulação de Digitação (tempo real)
+ ↓
+Análise de Desempenho
+ ↓
+Relatório Neural + Opções de Compartilhamento
+```
+
+Cada sessão é registrada como uma **entrada neural única**, associada ao operador autenticado.  
+O sistema aprende e se ajusta de acordo com o histórico de desempenho do jogador.
+
+---
+
+## 🔬 Métricas Capturadas
+
+- 🏆 **Pontuação total**
+- ⌨️ **Palavras digitadas**
+- ❌ **Erros**
+- 🎯 **Precisão (%)**
+- ⚡ **WPM (Palavras por Minuto)**
+- 🥇 **Recorde atual**
+- 🧠 **Identidade Neural (usuário logado)**
+
+---
+
+## 🧩 Estrutura Técnica
+
+**Stack:**
+- React + TypeScript  
+- Firebase (Auth + Firestore)  
+- Tailwind CSS (visual neon responsivo)  
+- AudioManager customizado (efeitos sonoros dinâmicos)  
+
+**Pastas principais:**
 ```
 /src
  ├── core/
+ │    ├── authService.ts
  │    ├── audioManager.ts
- │    ├── storage.ts
- │    └── utils.ts
+ │    ├── words.ts
+ │    └── storage.ts
  ├── components/
+ │    ├── IntroScreen.tsx
  │    ├── Menu.tsx
  │    ├── GameArea.tsx
- │    ├── VirtualKeyboard.tsx
- │    └── Settings.tsx
- ├── assets/
- │    ├── sounds/
- │    └── images/
- ├── styles/
- │    └── app.css
- └── main.tsx
+ │    ├── Settings.tsx
+ │    └── VirtualKeyboard.tsx
+ └── App.tsx
 ```
 
 ---
 
-## 🧠 Modo de Jogo
+## 🧠 Próximos Passos (Roadmap Neural)
 
-1. Escolha seu **nível de dificuldade** no menu inicial.  
-2. Digite as palavras que aparecem **antes do tempo acabar**.  
-3. Cada **acerto** toca um som e aumenta sua pontuação.  
-4. Cada **erro** reduz sua precisão e toca um som de falha.  
-5. Ao final, o jogo salva automaticamente seu **melhor score** local.
-
----
-
-## ⚙️ Instalação e Execução
-
-```bash
-# Clone o repositório
-git clone https://github.com/manoelfilhodev/cybertype-2.0.git
-cd cybertype-2.0
-
-# Instale as dependências
-npm install
-
-# Rode o projeto
-npm run dev
-```
-
-Acesse o jogo no navegador:
-👉 `http://localhost:5173`
+- [ ] Integração completa de logins sociais (GitHub, Discord, Apple)  
+- [ ] Ranking Neural Global (Firestore)  
+- [ ] Geração de **Neural Badge** (imagem cyberpunk do resultado)  
+- [ ] Sistema de níveis e progresso cognitivo  
+- [ ] Modo “Treinamento Avançado” com dificuldade dinâmica  
 
 ---
 
-## 🎧 Sons e Trilha Sonora
+## ⚡ Commit Log (versão temática)
 
-- 🔊 **Som de Teclado:** cada tecla pressionada gera um clique com variação de pitch.  
-- 🎵 **Música de Fundo:** pode ser ativada ou desativada nas configurações.  
-- 🚫 **Erro/Aviso:** efeitos sonoros distintos para erros e acertos.
-
----
-
-## 🧰 Configurações (Settings)
-
-A página **Settings** permite controlar:
-- Volume geral do teclado  
-- Ativar/Desativar sons de acerto/erro  
-- Ativar/Desativar música de fundo  
+| Versão | Registro Neural |
+|--------|------------------|
+| `v1.0.0` | Inicialização do núcleo neural — interface reativada |
+| `v1.1.0` | Sistema de autenticação implantado — Google conectado |
+| `v1.2.0` | Módulo de análise aprimorado — métricas cognitivas adicionadas |
+| `v1.3.0` | Experiência pós-jogo reformulada — sinapse otimizada |
+| `v1.4.0` | Feedback visual e som sincronizados — resposta neural instantânea |
+| `v1.5.0` | Precisão calibrada — relatório detalhado do operador |
 
 ---
 
-## 🏆 Ranking (Em breve)
+## 🧩 Desenvolvido por
+**SYSTEX Sistemas Inteligentes**  
+> “Transformando dados em decisões, e decisões em evolução digital.”
 
-- 👤 **Modo offline:** salva pontuação local.  
-- 🌐 **Modo online:** integrará login (Google/Apple) e ranking global de digitação.
-
----
-
-## 💡 Ideia Principal
-
-Criar um jogo que:
-- Treine **rapidez e precisão** na digitação.  
-- Sirva de ferramenta educativa e divertida.  
-- Evolua com **mecânicas competitivas** e **modos de desafio**.  
+🔗 [systex.com.br](https://systex.com.br)
 
 ---
 
-## 🧪 Próximos Passos
-
-- [ ] Sistema de ranking global  
-- [ ] Perfis e login via Google  
-- [ ] Modo “Fases” e “Errou = perdeu”  
-- [ ] Efeitos visuais aprimorados (partículas, shaders)  
-- [ ] Publicação como **PWA** e **App Mobile (Flutter)**  
-
----
-
-## 👨‍💻 Desenvolvido por
-
-**Manoel Filho**  
-🚀 Engenheiro de Software & Fundador da **Systex Sistemas Inteligentes**  
-🌐 [https://systex.com.br](https://systex.com.br)
-
----
-
-## 📜 Licença
-
-Este projeto é distribuído sob a licença **MIT** — sinta-se livre para modificar e aprimorar.
-
----
-
-> _"Type fast. Think faster. Welcome to the Neon Grid."_ ⚡
+📟 *CyberType Neural Terminal — Log Encerrado*

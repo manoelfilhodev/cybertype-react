@@ -3,7 +3,6 @@
 // =============================
 import { useEffect, useRef, useState } from "react";
 import { audioManager } from "../core/audioManager";
-import IconButton from "./IconButton";
 import {
   loginWithGoogle,
   loginWithGithub,
@@ -17,7 +16,7 @@ interface MenuProps {
   onSettings: () => void;
 }
 
-export default function Menu({ onStart, onSettings }: MenuProps) {
+export default function Menu({ onStart }: MenuProps) {
   const textRef = useRef<HTMLParagraphElement | null>(null);
   const [user, setUser] = useState<any>(() => {
     const saved = localStorage.getItem("cyberUser");
