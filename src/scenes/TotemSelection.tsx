@@ -2,7 +2,7 @@
 // 🧠 TotemSelection.tsx — CyberType 2.0
 // Cena: Escolha da Essência Neural (Totem)
 // =============================
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 // Sons opcionais (adicione em /public/assets/sounds/)
 const sounds = {
