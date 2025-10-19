@@ -18,22 +18,14 @@ export default function VirtualKeyboard() {
   }, []);
 
   // 🔊 Toca som com pitch aleatório e sem delay
-  const playClick = () => {
-    const ctx = audioContextRef.current;
-    if (!ctx) return;
-
-    const source = new Audio("/assets/sounds/key-click.mp3");
-    source.volume = 0.3;
-    source.playbackRate = 0.95 + Math.random() * 0.1; // variação de tom
-    source.play().catch(() => {});
-  };
+  
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const key = e.key.toUpperCase();
       if (/^[A-Z]$/.test(key)) {
         setPressed(key);
-        playClick();
+       
       }
     };
     const handleKeyUp = () => setPressed("");

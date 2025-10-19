@@ -1,26 +1,14 @@
 // =============================
-// 🎮 GameArea.tsx — CyberType 2.0 (React + Timer + Tela de Resultado + Som + Toggle)
+// 🎮 GameArea.tsx — CyberType 2.0
+// (React + Timer + Resultado + Sons + Flash Visual)
 // =============================
 
+import "../App.css";
 import { useEffect, useRef, useState } from "react";
 import { getRandomWord } from "../core/words";
 import { saveScore, getBestScore } from "../core/storage";
-import SoundToggle from "./SoundToggle";
 import VirtualKeyboard from "./VirtualKeyboard";
 import { audioManager } from "../core/audioManager";
-
-// 🎧 Sons globais (Cyberpunk Edition)
-const correctSound = new Audio("/assets/sounds/correct.mp3");
-const wrongSound = new Audio("/assets/sounds/wrong.mp3");
-const timeoutSound = new Audio("/assets/sounds/timeout.mp3");
-
-const bgMusic = audioManager.bgMusic;
-
-bgMusic.loop = true;
-bgMusic.volume = 0.35;
-correctSound.volume = 0.6;
-wrongSound.volume = 0.6;
-timeoutSound.volume = 0.6;
 
 interface GameAreaProps {
   difficulty: string;
@@ -32,11 +20,9 @@ export default function GameArea({ difficulty, onExit }: GameAreaProps) {
   const [inputValue, setInputValue] = useState<string>("");
   const [score, setScore] = useState<number>(0);
   const [bestScore, setBestScore] = useState<number>(0);
-  const [status, setStatus] = useState<string>("");
   const [startTime, setStartTime] = useState<number>(0);
   const [timeLeft, setTimeLeft] = useState<number>(10);
   const [gameOver, setGameOver] = useState<boolean>(false);
-
   const inputRef = useRef<HTMLInputElement | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -46,18 +32,13 @@ export default function GameArea({ difficulty, onExit }: GameAreaProps) {
     startNewWord();
     inputRef.current?.focus();
 
-    // 🎶 Inicia música de fundo
-    bgMusic.play().catch(() => {
-      console.log("🎵 Aguardando interação do usuário para iniciar o som...");
-    });
-
-    // 🔊 Pré-desbloqueia o som do teclado (fix Chrome)
-    //new Audio("/assets/sounds/key-click.mp3").play().catch(() => {});
+    // 🎵 mantém a música se ativada
+    if (audioManager.musicEnabled) audioManager.play();
 
     return () => {
       stopTimer();
-      bgMusic.pause();
-      bgMusic.currentTime = 0;
+      if (!audioManager.musicEnabled) audioManager.stop(false);
+      else audioManager.play();
     };
   }, [difficulty]);
 
@@ -66,7 +47,7 @@ export default function GameArea({ difficulty, onExit }: GameAreaProps) {
     if (timeLeft <= 0 && !gameOver) handleTimeout();
   }, [timeLeft]);
 
-  // === Inicia nova palavra ===
+  // === Nova palavra ===
   function startNewWord() {
     const word = getRandomWord(difficulty);
     setCurrentWord(word);
@@ -81,7 +62,7 @@ export default function GameArea({ difficulty, onExit }: GameAreaProps) {
     startTimer();
   }
 
-  // === Inicia contagem regressiva ===
+  // === Timer ===
   function startTimer() {
     stopTimer();
     timerRef.current = setInterval(() => {
@@ -89,7 +70,6 @@ export default function GameArea({ difficulty, onExit }: GameAreaProps) {
     }, 100);
   }
 
-  // === Para o timer ===
   function stopTimer() {
     if (timerRef.current) clearInterval(timerRef.current);
   }
@@ -98,25 +78,22 @@ export default function GameArea({ difficulty, onExit }: GameAreaProps) {
   function handleTimeout() {
     stopTimer();
     flashFeedback("wrong");
-    timeoutSound.currentTime = 0;
-    timeoutSound.play();
-    setStatus("⏰ Tempo esgotado!");
+    audioManager.playError();
 
-    // ⛔ Encerra o jogo ao acabar o tempo
     setTimeout(() => {
-      setStatus("");
       endGame();
-    }, 800);
+    }, 500);
   }
 
   // === Entrada ===
   function handleInput(value: string) {
     setInputValue(value);
+    audioManager.playKey();
+
     if (value === currentWord) handleCorrect();
     else {
       const expected = currentWord.substring(0, value.length);
       if (value !== expected) handleWrong();
-      else setStatus("");
     }
   }
 
@@ -126,32 +103,28 @@ export default function GameArea({ difficulty, onExit }: GameAreaProps) {
     const points = Math.max(1, Math.floor(10 - timeTaken));
     setScore((prev) => prev + points);
     flashFeedback("correct");
+    audioManager.playHit();
     startNewWord();
   }
 
   // === Erro ===
   function handleWrong() {
     flashFeedback("wrong");
-    setStatus("❌ Erro!");
-    setTimeout(() => setStatus(""), 500);
+    audioManager.playError();
   }
 
-  // === Feedback visual + som ===
+  // === Flash visual ===
   function flashFeedback(type: "correct" | "wrong") {
-    if (type === "correct") {
-      correctSound.currentTime = 0;
-      correctSound.play();
-      document.body.classList.add("correct-flash");
-    } else {
-      wrongSound.currentTime = 0;
-      wrongSound.play();
-      document.body.classList.add("wrong-flash");
-    }
-
+    const el = document.getElementById("game-container");
+    if (!el) return;
+  
+    el.classList.add(type === "correct" ? "cyber-flash-green" : "cyber-flash-red");
+  
     setTimeout(() => {
-      document.body.classList.remove("correct-flash", "wrong-flash");
-    }, 150);
+      el.classList.remove("cyber-flash-green", "cyber-flash-red");
+    }, 250);
   }
+  
 
   // === Fim de jogo ===
   function endGame() {
@@ -161,7 +134,7 @@ export default function GameArea({ difficulty, onExit }: GameAreaProps) {
     setGameOver(true);
   }
 
-  // === Reiniciar jogo ===
+  // === Reiniciar ===
   function restartGame() {
     setScore(0);
     setGameOver(false);
@@ -172,13 +145,12 @@ export default function GameArea({ difficulty, onExit }: GameAreaProps) {
   if (gameOver) {
     return (
       <div className="flex flex-col items-center justify-center gap-6 text-center relative fade-in-cyber pt-10">
-        <SoundToggle />
         <h1
-  className="text-3xl font-bold drop-shadow-md glitch"
-  data-text="🏁 FIM DE JOGO!"
->
-  🏁 FIM DE JOGO!
-</h1>
+          className="text-3xl font-bold drop-shadow-md glitch"
+          data-text="🏁 FIM DE JOGO!"
+        >
+          🏁 FIM DE JOGO!
+        </h1>
 
         <p className="text-xl text-gray-300">
           Dificuldade: <span className="font-semibold">{difficulty}</span>
@@ -194,40 +166,35 @@ export default function GameArea({ difficulty, onExit }: GameAreaProps) {
         </div>
 
         <div className="flex gap-4 mt-6">
-        <button
-  onClick={restartGame}
-  className="px-6 py-2 bg-blue-500 text-white rounded-lg btn-cyber"
->
-  Jogar Novamente
-</button>
-<button
-  onClick={onExit}
-  className="px-6 py-2 bg-red-500 text-white rounded-lg btn-cyber"
->
-  Voltar ao Menu
-</button>
-
+          <button
+            onClick={restartGame}
+            className="px-6 py-2 bg-blue-500 text-white rounded-lg btn-cyber"
+          >
+            Jogar Novamente
+          </button>
+          <button
+            onClick={onExit}
+            className="px-6 py-2 bg-red-500 text-white rounded-lg btn-cyber"
+          >
+            Voltar ao Menu
+          </button>
         </div>
       </div>
     );
   }
 
-  // === Tela do jogo ===
+  // === Tela principal ===
   return (
-    <div className="flex flex-col items-center justify-center gap-6 text-center relative">
-      <SoundToggle />
-
-      <h1 className="text-3xl font-bold text-cyan-400">CyberType 2.0</h1>
+    <div id="game-container" className="flex flex-col items-center justify-center gap-6 text-center relative">
+      <h1 className="text-3xl font-bold text-cyan-400 drop-shadow-[0_0_10px_#00ffe7]">
+        CyberType 2.0
+      </h1>
       <p className="text-gray-300">
         Dificuldade: <span className="font-semibold">{difficulty}</span>
       </p>
 
       <div className="text-xl text-yellow-400 font-mono">
         ⏱️ Tempo: {timeLeft.toFixed(1)}s
-      </div>
-
-      <div id="status" className="text-red-400 text-xl">
-        {status}
       </div>
 
       <div
