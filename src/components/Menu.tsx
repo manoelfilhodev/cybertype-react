@@ -6,7 +6,7 @@ import { audioManager } from "../core/audioManager";
 import {
   loginWithGoogle,
   loginWithGithub,
-  loginWithApple,
+  // loginWithApple,
   logoutUser,
   watchAuthState,
 } from "../core/authService"; // 🔥 mantemos só os provedores Firebase
