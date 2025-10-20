@@ -245,11 +245,11 @@ export default function Menu({ onStart, onSettings }: MenuProps) {
   className="cursor-pointer hover:text-pink-500 hover:drop-shadow-[0_0_8px_#ff00ff] transition"
   title="Entrar com Discord"
 />
-              <FaApple
+              {/* <FaApple
                 onClick={() => handleLogin(loginWithApple)}
                 className="cursor-pointer hover:text-cyan-400 hover:drop-shadow-[0_0_8px_#00ffe7] transition"
                 title="Entrar com Apple"
-              />
+              /> */}
             </div>
           )}
 
