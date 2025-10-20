@@ -10,7 +10,7 @@ import {
   logoutUser,
   watchAuthState,
 } from "../core/authService"; // 🔥 mantemos só os provedores Firebase
-import { FaGoogle, FaGithub, FaDiscord, FaApple, FaSignOutAlt } from "react-icons/fa";
+import { FaGoogle, FaGithub, FaDiscord, FaSignOutAlt } from "react-icons/fa";
 import { loginWithDiscordDirect } from "../core/discordAuth"; // 🎮 novo método Discord direto
 
 
