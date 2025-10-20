@@ -2,7 +2,7 @@
 // 🔥 firebase.ts — Inicializa Firebase (Auth + Firestore)
 // =============================
 
-import { initializeApp } from "firebase/app";
+import { initializeApp, getApps } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
@@ -16,11 +16,14 @@ const firebaseConfig = {
   appId: "1:761094224689:web:9d2a23ad142e46c1a28e10",
 };
 
-// 🚀 Inicializa o Firebase App
-const app = initializeApp(firebaseConfig);
+// 🚀 Inicializa o Firebase App (evita erro de duplicação)
+const app = !getApps().length ? initializeApp(firebaseConfig) : getApps()[0];
 
 // 🔐 Autenticação
 export const auth = getAuth(app);
 
 // 💾 Banco de dados Firestore
 export const db = getFirestore(app);
+
+// 🔁 Exporta o app principal (caso necessário)
+export default app;

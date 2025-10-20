@@ -1,3 +1,7 @@
+// =============================
+// 🌐 rankingService.ts — Ranking Global com CyberScore
+// =============================
+
 import { db } from "./firebase";
 import {
   collection,
@@ -7,14 +11,18 @@ import {
   orderBy,
   limit,
   where,
-  DocumentReference
+  DocumentReference,
 } from "firebase/firestore";
 
+/**
+ * Salva o desempenho do jogador no ranking global (Firestore)
+ */
 export async function saveRanking(
   name: string,
   score: number,
   averageSpeed: number,
-  level: "easy" | "medium" | "hard"
+  level: "easy" | "medium" | "hard",
+  cyberScore?: number // 🧠 novo parâmetro opcional
 ): Promise<void> {
   try {
     const docRef: DocumentReference = await addDoc(collection(db, "rankings"), {
@@ -22,6 +30,7 @@ export async function saveRanking(
       score,
       averageSpeed,
       level,
+      cyberScore: cyberScore ?? 0, // adiciona o campo mesmo se vier vazio
       createdAt: new Date(),
     });
 
@@ -31,18 +40,28 @@ export async function saveRanking(
   }
 }
 
+/**
+ * Busca o Top 10 global (ou por nível)
+ */
 export async function getRanking(level?: "easy" | "medium" | "hard") {
   try {
     let q;
+
     if (level) {
+      // 🔹 Ranking filtrado por nível, ordenado pelo CyberScore (desc)
       q = query(
         collection(db, "rankings"),
         where("level", "==", level),
-        orderBy("score", "desc"),
+        orderBy("cyberScore", "desc"),
         limit(10)
       );
     } else {
-      q = query(collection(db, "rankings"), orderBy("score", "desc"), limit(10));
+      // 🔹 Ranking geral
+      q = query(
+        collection(db, "rankings"),
+        orderBy("cyberScore", "desc"),
+        limit(10)
+      );
     }
 
     const snapshot = await getDocs(q);

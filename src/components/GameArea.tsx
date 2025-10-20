@@ -9,6 +9,7 @@ import { saveScore, getBestScore } from "../core/storage";
 import VirtualKeyboard from "./VirtualKeyboard";
 import { audioManager } from "../core/audioManager";
 import { FaTwitter, FaWhatsapp } from "react-icons/fa";
+import { calculateCyberScore } from "../core/scoreUtils";
 import { saveRanking } from "../core/rankingService";
 
 interface GameAreaProps {
@@ -156,23 +157,34 @@ export default function GameArea({ difficulty, onExit, onViewRanking }: GameArea
     saveScore(score, difficulty);
     setBestScore(getBestScore(difficulty));
 
-    // 🧠 Se o jogador estiver logado, salva no ranking global
-    if (user) {
-      const averageSpeed =
-        totalTyped > 0 ? (totalTyped / 5) / ((totalTime - timeLeft) / 60) : 0;
-      saveRanking(user.displayName, score, averageSpeed, difficulty as "easy" | "medium" | "hard");
-      console.log("📡 Enviando ranking:", {
-        name: user.displayName,
-        score,
-        averageSpeed,
-        level: difficulty,
-      });
-    }
+    // 🧠 Se o jogador estiver logado, calcula o CyberScore e salva no ranking global
+if (user) {
+  const averageSpeed =
+    totalTyped > 0 ? (totalTyped / 5) / ((totalTime - timeLeft) / 60) : 0;
+  const cyberScore = calculateCyberScore(averageSpeed, accuracy, difficulty);
+
+  saveRanking(
+    user.displayName,
+    cyberScore, // salva o CyberScore no ranking
+    averageSpeed,
+    difficulty as "easy" | "medium" | "hard",
+    cyberScore
+  );
+
+  console.log("📡 Enviando ranking:", {
+    name: user.displayName,
+    cyberScore,
+    wpm: averageSpeed,
+    accuracy: accuracy.toFixed(1),
+    level: difficulty,
+  });
+}
+
 // Se o jogador não fez nenhuma pontuação, ainda assim salva o 0
 if (score === 0) {
   saveScore(0, difficulty);
   if (user) {
-    saveRanking(user.displayName, 0, 0, difficulty as "easy" | "medium" | "hard");
+    saveRanking(user.displayName, 0, 0, difficulty as "easy" | "medium" | "hard", 0);
   }
 }
     setShowAnalyzing(true);
@@ -236,6 +248,7 @@ if (score === 0) {
           <p>🏆 Pontuação: <span className="text-yellow-400">{score}</span></p>
           <p>🎯 Precisão: <span className="text-green-400">{accuracy.toFixed(1)}%</span></p>
           <p>⚡ WPM: <span className="text-blue-400">{wpm.toFixed(1)}</span></p>
+          <p>🧠 CyberScore: <span className="text-pink-500 font-bold">{calculateCyberScore(wpm, accuracy, difficulty)}</span></p>
           <p>🥇 Recorde: <span className="text-purple-400">{record}</span></p>
         </div>
 
