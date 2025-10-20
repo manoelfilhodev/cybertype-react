@@ -6,12 +6,13 @@ import { audioManager } from "../core/audioManager";
 import {
   loginWithGoogle,
   loginWithGithub,
-  loginWithDiscord,
   loginWithApple,
   logoutUser,
   watchAuthState,
-} from "../core/authService";
+} from "../core/authService"; // 🔥 mantemos só os provedores Firebase
 import { FaGoogle, FaGithub, FaDiscord, FaApple, FaSignOutAlt } from "react-icons/fa";
+import { loginWithDiscordDirect } from "../core/discordAuth"; // 🎮 novo método Discord direto
+
 
 interface MenuProps {
   onStart: (level: string) => void;
@@ -28,6 +29,7 @@ export default function Menu({ onStart, onSettings }: MenuProps) {
   });
 
   useEffect(() => {
+    // === 🔥 Sessão Firebase (Google / GitHub / Apple) ===
     const unsub = watchAuthState((u) => {
       setUser(u);
       if (u) {
@@ -36,8 +38,20 @@ export default function Menu({ onStart, onSettings }: MenuProps) {
         localStorage.removeItem("cyberUser");
       }
     });
+  
+    // === 🎮 Sessão Discord (OAuth direto) ===
+    import("../core/discordAuth").then(({ checkDiscordCallback }) => {
+      checkDiscordCallback().then((discordUser) => {
+        if (discordUser) {
+          setUser(discordUser);
+          localStorage.setItem("cyberUser", JSON.stringify(discordUser));
+        }
+      });
+    });
+  
     return () => unsub();
   }, []);
+  
 
   // === Funções de login (sem reload da página) ===
   const handleLogin = async (providerFn: any) => {
@@ -227,10 +241,10 @@ export default function Menu({ onStart, onSettings }: MenuProps) {
                 title="Entrar com GitHub"
               />
               <FaDiscord
-                onClick={() => handleLogin(loginWithDiscord)}
-                className="cursor-pointer hover:text-pink-500 hover:drop-shadow-[0_0_8px_#ff00ff] transition"
-                title="Entrar com Discord"
-              />
+  onClick={() => loginWithDiscordDirect()}
+  className="cursor-pointer hover:text-pink-500 hover:drop-shadow-[0_0_8px_#ff00ff] transition"
+  title="Entrar com Discord"
+/>
               <FaApple
                 onClick={() => handleLogin(loginWithApple)}
                 className="cursor-pointer hover:text-cyan-400 hover:drop-shadow-[0_0_8px_#00ffe7] transition"

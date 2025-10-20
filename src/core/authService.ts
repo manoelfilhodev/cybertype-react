@@ -38,10 +38,6 @@ export async function loginWithGithub() {
  * ⚙️ No Firebase, adicione um provedor OIDC chamado "discord"
  * e use as credenciais obtidas no Discord Developer Portal.
  */
-export async function loginWithDiscord() {
-  const provider = new OAuthProvider("oidc.discord");
-  return await signInWithPopup(auth, provider);
-}
 
 /**
  * 🍏 Login com Apple
