@@ -1,5 +1,5 @@
 // =============================
-// 🎮 GameArea.tsx — CyberType 2.0 (versão premium UX)
+// 🎮 GameArea.tsx — CyberType 2.0 (versão premium UX - tempo contínuo)
 // =============================
 
 import "../App.css";
@@ -8,20 +8,23 @@ import { getRandomWord } from "../core/words";
 import { saveScore, getBestScore } from "../core/storage";
 import VirtualKeyboard from "./VirtualKeyboard";
 import { audioManager } from "../core/audioManager";
-import { FaTwitter, FaWhatsapp, FaLink } from "react-icons/fa";
+import { FaTwitter, FaWhatsapp } from "react-icons/fa";
+import { saveRanking } from "../core/rankingService";
 
 interface GameAreaProps {
   difficulty: string;
   onExit: () => void;
+  onViewRanking: () => void;
 }
 
-export default function GameArea({ difficulty, onExit }: GameAreaProps) {
+export default function GameArea({ difficulty, onExit, onViewRanking }: GameAreaProps) {
   const [currentWord, setCurrentWord] = useState<string>("");
   const [inputValue, setInputValue] = useState<string>("");
   const [score, setScore] = useState<number>(0);
   const [bestScore, setBestScore] = useState<number>(0);
   const [startTime, setStartTime] = useState<number>(0);
-  const [timeLeft, setTimeLeft] = useState<number>(10);
+  const [timeLeft, setTimeLeft] = useState<number>(0);
+  const [totalTime, setTotalTime] = useState<number>(0);
   const [gameOver, setGameOver] = useState<boolean>(false);
   const [showAnalyzing, setShowAnalyzing] = useState<boolean>(false);
 
@@ -42,7 +45,16 @@ export default function GameArea({ difficulty, onExit }: GameAreaProps) {
   useEffect(() => {
     setBestScore(getBestScore(difficulty));
     setRecord(getBestScore(difficulty));
+
+    let total = 60;
+    if (difficulty === "medium") total = 45;
+    else if (difficulty === "hard") total = 30;
+
+    setTimeLeft(total);
+    setTotalTime(total);
     startNewWord();
+    startTimer();
+
     inputRef.current?.focus();
 
     if (audioManager.musicEnabled) audioManager.play();
@@ -54,9 +66,7 @@ export default function GameArea({ difficulty, onExit }: GameAreaProps) {
     };
   }, [difficulty]);
 
-  useEffect(() => {
-    if (timeLeft <= 0 && !gameOver) handleTimeout();
-  }, [timeLeft]);
+  
 
   // === Nova palavra ===
   function startNewWord() {
@@ -64,20 +74,20 @@ export default function GameArea({ difficulty, onExit }: GameAreaProps) {
     setCurrentWord(word);
     setInputValue("");
     setStartTime(Date.now());
-
-    let initialTime = 10;
-    if (difficulty === "easy") initialTime = 12;
-    else if (difficulty === "hard") initialTime = 8;
-
-    setTimeLeft(initialTime);
-    startTimer();
   }
 
   // === Timer ===
   function startTimer() {
     stopTimer();
     timerRef.current = setInterval(() => {
-      setTimeLeft((prev) => parseFloat((prev - 0.1).toFixed(1)));
+      setTimeLeft((prev) => {
+        if (prev <= 0.1) {
+          clearInterval(timerRef.current!);
+          handleTimeout();
+          return 0;
+        }
+        return parseFloat((prev - 0.1).toFixed(1));
+      });
     }, 100);
   }
 
@@ -113,6 +123,10 @@ export default function GameArea({ difficulty, onExit }: GameAreaProps) {
     setScore((prev) => prev + points);
     flashFeedback("correct");
     audioManager.playHit();
+
+    // 🎁 bônus opcional: +1s até o limite total da rodada
+    setTimeLeft((prev) => Math.min(prev + 1, totalTime));
+
     startNewWord();
   }
 
@@ -133,13 +147,34 @@ export default function GameArea({ difficulty, onExit }: GameAreaProps) {
 
   // === Cálculos ===
   const accuracy = totalTyped > 0 ? ((totalTyped - errors) / totalTyped) * 100 : 0;
-  const wpm = totalTyped > 0 ? (totalTyped / 5) / ((60 - timeLeft) / 60) : 0;
+  const wpm =
+    totalTyped > 0 ? (totalTyped / 5) / ((totalTime - timeLeft) / 60) : 0;
 
   // === Fim de jogo ===
   function endGame() {
     stopTimer();
     saveScore(score, difficulty);
     setBestScore(getBestScore(difficulty));
+
+    // 🧠 Se o jogador estiver logado, salva no ranking global
+    if (user) {
+      const averageSpeed =
+        totalTyped > 0 ? (totalTyped / 5) / ((totalTime - timeLeft) / 60) : 0;
+      saveRanking(user.displayName, score, averageSpeed, difficulty as "easy" | "medium" | "hard");
+      console.log("📡 Enviando ranking:", {
+        name: user.displayName,
+        score,
+        averageSpeed,
+        level: difficulty,
+      });
+    }
+// Se o jogador não fez nenhuma pontuação, ainda assim salva o 0
+if (score === 0) {
+  saveScore(0, difficulty);
+  if (user) {
+    saveRanking(user.displayName, 0, 0, difficulty as "easy" | "medium" | "hard");
+  }
+}
     setShowAnalyzing(true);
     setTimeout(() => {
       setShowAnalyzing(false);
@@ -153,7 +188,15 @@ export default function GameArea({ difficulty, onExit }: GameAreaProps) {
     setErrors(0);
     setTotalTyped(0);
     setGameOver(false);
+
+    let total = 60;
+    if (difficulty === "medium") total = 45;
+    else if (difficulty === "hard") total = 30;
+
+    setTimeLeft(total);
+    setTotalTime(total);
     startNewWord();
+    startTimer();
   }
 
   // === Tela "Analisando desempenho" ===
@@ -167,17 +210,15 @@ export default function GameArea({ difficulty, onExit }: GameAreaProps) {
 
   // === Tela de resultado ===
   if (gameOver) {
+    const top10Threshold = 50;
+    const diffToTop10 = Math.max(0, top10Threshold - score);
+
     return (
       <div className="flex flex-col items-center justify-center gap-6 text-center relative fade-in-cyber pt-10">
-        <h1 className="text-3xl font-bold text-cyan-400 drop-shadow-[0_0_15px_#00ffe7]">
-          🏁 FIM DE JOGO!
+        <h1 className="text-4xl font-bold text-cyan-400 drop-shadow-[0_0_15px_#00ffe7] animate-pulse">
+          🏁 FIM DE SIMULAÇÃO
         </h1>
 
-        <p className="text-xl text-gray-300">
-          Dificuldade: <span className="font-semibold">{difficulty}</span>
-        </p>
-
-        {/* Avatar */}
         {user && (
           <div className="flex flex-col items-center mb-4 animate-fadeIn">
             <img
@@ -191,17 +232,27 @@ export default function GameArea({ difficulty, onExit }: GameAreaProps) {
           </div>
         )}
 
-        {/* Estatísticas detalhadas */}
-        <div className="bg-[#0a0a12] text-white px-8 py-6 rounded-lg border border-cyan-500 shadow-[0_0_15px_#00ffe7] space-y-2 text-lg font-mono text-left">
+        <div className="bg-[#0a0a12] text-white px-8 py-6 rounded-lg border border-cyan-500 shadow-[0_0_15px_#00ffe7] space-y-2 text-lg font-mono text-left max-w-md w-full">
           <p>🏆 Pontuação: <span className="text-yellow-400">{score}</span></p>
-          <p>⌨️ Palavras digitadas: <span className="text-cyan-300">{totalTyped}</span></p>
-          <p>❌ Erros: <span className="text-red-400">{errors}</span></p>
           <p>🎯 Precisão: <span className="text-green-400">{accuracy.toFixed(1)}%</span></p>
           <p>⚡ WPM: <span className="text-blue-400">{wpm.toFixed(1)}</span></p>
-          <p>🥇 Recorde atual: <span className="text-purple-400">{record}</span></p>
+          <p>🥇 Recorde: <span className="text-purple-400">{record}</span></p>
         </div>
 
-        {/* Botões principais */}
+        <div className="mt-6 text-lg font-mono text-gray-300">
+          {score >= top10Threshold ? (
+            <p className="text-yellow-400 animate-pulse">
+              🚀 Incrível! Você entrou no TOP 10 do ranking global!
+            </p>
+          ) : (
+            <p>
+              💡 Faltam{" "}
+              <span className="text-pink-400 font-bold">{diffToTop10}</span>{" "}
+              pontos para o TOP 10. Tente novamente!
+            </p>
+          )}
+        </div>
+
         <div className="flex flex-col md:flex-row gap-4 mt-6">
           <button
             onClick={restartGame}
@@ -215,9 +266,14 @@ export default function GameArea({ difficulty, onExit }: GameAreaProps) {
           >
             ⬅️ Retornar ao Menu Neural
           </button>
+          <button
+            onClick={onViewRanking}
+            className="px-8 py-3 bg-gradient-to-r from-pink-500 to-cyan-400 text-black font-bold rounded-xl shadow-[0_0_20px_#ff00ff] hover:scale-105 transition-all"
+          >
+            🌍 Ver Ranking Global
+          </button>
         </div>
 
-        {/* Barra de compartilhamento */}
         <div className="flex justify-center gap-6 mt-8">
           <FaTwitter
             title="Compartilhar no X"
@@ -243,19 +299,8 @@ export default function GameArea({ difficulty, onExit }: GameAreaProps) {
             }
             className="text-[#25D366] text-2xl cursor-pointer hover:scale-110 transition-all drop-shadow-[0_0_10px_#25D366]"
           />
-          <FaLink
-            title="Copiar Resultado"
-            onClick={() => {
-              navigator.clipboard.writeText(
-                `CyberType_2.0 — ${score} pontos (${difficulty}) 💥`
-              );
-              alert("🔗 Resultado copiado para a área de transferência!");
-            }}
-            className="text-gray-400 text-2xl cursor-pointer hover:scale-110 hover:text-cyan-400 transition-all"
-          />
         </div>
 
-        {/* Frase final */}
         <p className="mt-6 text-xs text-gray-500 font-mono animate-pulse">
           {user
             ? "🧠 Sincronização concluída com sucesso."

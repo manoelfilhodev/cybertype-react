@@ -17,9 +17,10 @@ import { loginWithDiscordDirect } from "../core/discordAuth"; // 🎮 novo méto
 interface MenuProps {
   onStart: (level: string) => void;
   onSettings: () => void;
+  onViewRanking: () => void;
 }
 
-export default function Menu({ onStart, onSettings }: MenuProps) {
+export default function Menu({ onStart, onSettings, onViewRanking }: MenuProps) {
   const textRef = useRef<HTMLParagraphElement | null>(null);
 
   // === Estado do usuário (inicializa do localStorage e mantém via Firebase) ===
@@ -186,31 +187,46 @@ export default function Menu({ onStart, onSettings }: MenuProps) {
           </div>
         )}
 
-        {/* === Botões de dificuldade === */}
-        <p className="text-gray-400 text-lg md:text-xl tracking-wide mt-2">
-          Escolha sua dificuldade:
-        </p>
-        <div className="flex flex-wrap justify-center gap-6 mt-6">
-          {[
-            { label: "Fácil", value: "easy" },
-            { label: "Médio", value: "medium" },
-            { label: "Difícil", value: "hard" },
-          ].map((lvl, i) => (
-            <button
-              key={lvl.value}
-              onClick={() => handleStart(lvl.value)}
-              className={`px-8 py-3 md:px-10 md:py-4 text-white rounded-lg text-lg font-semibold transition-all duration-300 ${
-                i === 0
-                  ? "bg-green-500 hover:bg-green-600 shadow-[0_0_15px_#00ff88]"
-                  : i === 1
-                  ? "bg-yellow-500 hover:bg-yellow-600 shadow-[0_0_15px_#ffcc00]"
-                  : "bg-red-500 hover:bg-red-600 shadow-[0_0_15px_#ff0044]"
-              }`}
-            >
-              {lvl.label}
-            </button>
-          ))}
-        </div>
+        {/* === Seleção de Dificuldade === */}
+<div className="flex flex-col items-center gap-8 mt-8">
+  <p className="text-gray-400 text-lg md:text-xl tracking-wide">
+    Escolha sua dificuldade:
+  </p>
+
+  <div className="flex flex-wrap justify-center gap-6">
+    {[
+      { label: "Fácil", value: "easy" },
+      { label: "Médio", value: "medium" },
+      { label: "Difícil", value: "hard" },
+    ].map((lvl, i) => (
+      <button
+        key={lvl.value}
+        onClick={() => handleStart(lvl.value)}
+        className={`px-8 py-3 md:px-10 md:py-4 text-white rounded-lg text-lg font-semibold transition-all duration-300 ${
+          i === 0
+            ? "bg-green-500 hover:bg-green-600 shadow-[0_0_15px_#00ff88]"
+            : i === 1
+            ? "bg-yellow-500 hover:bg-yellow-600 shadow-[0_0_15px_#ffcc00]"
+            : "bg-red-500 hover:bg-red-600 shadow-[0_0_15px_#ff0044]"
+        }`}
+      >
+        {lvl.label}
+      </button>
+    ))}
+  </div>
+
+  {/* === Botão de Ranking Global === */}
+  {/* === Botão de Ranking Global === */}
+<button
+  onClick={onViewRanking} // ✅ agora vai para a tela de ranking de verdade
+  className="mt-6 px-8 py-3 bg-gradient-to-r from-pink-500 to-cyan-400 text-black font-bold rounded-xl shadow-[0_0_25px_#ff00ff] hover:scale-105 transition-all animate-pulse-slow"
+>
+  🌍 Ver Ranking Global
+</button>
+
+</div>
+
+
 
         {/* === BOTÃO DE CONFIGURAÇÕES === */}
         <button
