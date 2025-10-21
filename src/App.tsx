@@ -112,10 +112,14 @@ if (isMobile) {
           />
         ) : (
           <GameArea
-            onExit={() => setInGame(false)}
-            onViewRanking={() => setShowRanking(true)}
-            difficulty={difficulty}
-          />
+  onExit={() => setInGame(false)}
+  onViewRanking={() => {
+    setInGame(false);     // encerra o jogo
+    setShowRanking(true); // abre o ranking
+  }}
+  difficulty={difficulty}
+/>
+
         )}
       </div>
     </div>

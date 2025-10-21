@@ -1,7 +1,6 @@
 // =============================
-// 🏆 RankingScreen.tsx — CyberType 2.0 (Neon + Abas + Tempo Real)
+// 🧠 RankingScreen.tsx — CyberType 2.0 (Neon + Abas + Badges + Rolagem)
 // =============================
-
 import { useEffect, useState } from "react";
 import { db } from "../core/firebase";
 import {
@@ -70,10 +69,18 @@ export default function RankingScreen({ onBack }: { onBack: () => void }) {
     { key: "personal", label: "👤 Meus Resultados" },
   ];
 
+  const getBadge = (score: number) => {
+    if (score >= 900) return "🌐 Neural Master";
+    if (score >= 700) return "⚡ Cyber Runner";
+    if (score >= 500) return "💾 Data Seeker";
+    if (score >= 300) return "🔹 Neon Initiate";
+    return "👾 Noob";
+  };
+
   return (
-    <div className="flex flex-col items-center justify-center text-center min-h-screen text-cyan-400 font-mono p-4 fade-in-cyber">
+    <div className="flex flex-col items-center justify-center text-center min-h-screen text-cyan-400 font-mono p-4 fade-in-cyber relative">
       <h1 className="text-4xl font-bold drop-shadow-[0_0_15px_#00ffff] mb-4 tracking-widest">
-        🏆 RANKING GLOBAL
+        🏆 RANKING NEURAL GLOBAL
       </h1>
 
       {/* 🔹 Abas principais */}
@@ -122,12 +129,13 @@ export default function RankingScreen({ onBack }: { onBack: () => void }) {
               <th className="p-3 text-right">Pontuação</th>
               <th className="p-3 text-right">Velocidade</th>
               <th className="p-3 text-right">Nível</th>
+              <th className="p-3 text-right">Badge</th>
             </tr>
           </thead>
           <tbody>
             {ranking.length === 0 ? (
               <tr>
-                <td colSpan={5} className="py-6 text-gray-500 text-center">
+                <td colSpan={6} className="py-6 text-gray-500 text-center">
                   Nenhum resultado disponível 🕹️
                 </td>
               </tr>
@@ -146,9 +154,7 @@ export default function RankingScreen({ onBack }: { onBack: () => void }) {
                   }`}
                 >
                   <td className="p-3 text-left">
-                    {activeTab === "personal"
-                      ? i + 1
-                      : i === 0
+                    {i === 0
                       ? "🥇"
                       : i === 1
                       ? "🥈"
@@ -164,6 +170,9 @@ export default function RankingScreen({ onBack }: { onBack: () => void }) {
                     {r.averageSpeed?.toFixed(2)} s
                   </td>
                   <td className="p-3 text-right capitalize">{r.level}</td>
+                  <td className="p-3 text-right italic text-cyan-300">
+                    {getBadge(r.score)}
+                  </td>
                 </tr>
               ))
             )}
